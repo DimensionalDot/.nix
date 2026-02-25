@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
     imports =
@@ -10,14 +10,15 @@
             ./hardware-configuration.nix
         ];
 
-    swapDevices = [{
-        device = "/var/lib/swapfile";
-        size = 32*1024; # 32 GB
-    }];
+    # swapDevices = [{
+    #     device = "/var/lib/swapfile";
+    #     size = 32*1024; # 32 GB
+    # }];
 
     # Bootloader.
     boot.loader.systemd-boot.enable = true;
     boot.loader.efi.canTouchEfiVariables = true;
+    boot.loader.timeout = null; # indefinite
 
     networking.hostName = "giedi"; # Define your hostname.
     # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -76,12 +77,16 @@
         waybar
         wlsunset
 
+        inputs.zen-browser.packages."x86_64-linux".beta
+
         ghostty
         git
         stow
+        direnv
+        openssl
 
         gcc
-        nodejs_24
+        nodejs
         ripgrep
         fd
         tree-sitter
@@ -107,13 +112,49 @@
         defaultEditor = true;
     };
     programs.hyprland.enable = true;
-    programs.firefox.enable = true;
     programs._1password-gui.enable = true;
 
     # List services that you want to enable:
 
     # Enable the OpenSSH daemon.
     # services.openssh.enable = true;
+    services.httpd = {
+        enable = true;
+        virtualHosts.localhost =
+            let pma = (pkgs.callPackage ./packages/phpmyadmin.nix { inherit pkgs; });
+                cert = (pkgs.callPackage ./packages/mkcert-root-ca.nix { inherit pkgs; }); in
+        {
+            onlySSL = true;
+            sslServerCert = "${cert}/rootCA.pem";
+            sslServerKey = "${cert}/rootCA-key.pem";
+
+            servedDirs = [
+                {
+                    dir = "/home/henry/work/phi/www";
+                    urlPath = "/phi";
+                }
+                {
+                    dir = "${pma}/share/php/phpmyadmin";
+                    urlPath = "/phpmyadmin";
+                }
+            ];
+            locations."/phi".index = "index.html index.php";
+            locations."/phpmyadmin".index = "index.php";
+        };
+        enablePHP = true;
+        phpPackage = pkgs.php83;
+    };
+    users.users.henry.homeMode = "710"; # mask gets reset on rebuild for some reason...
+    systemd.tmpfiles.rules = [
+        "a /home/henry - - - - u:wwwrun:x" # needed so httpd can access work folder
+    ];
+
+    services.mysql = {
+        enable = true;
+        package = pkgs.mysql84;
+    };
+
+    services.logind.powerKey = "suspend";
 
     # Open ports in the firewall.
     # networking.firewall.allowedTCPPorts = [ ... ];
@@ -128,6 +169,8 @@
     # Before changing this value read the documentation for this option
     # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
     system.stateVersion = "25.05"; # Did you read the comment?
+
+    nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
     hardware.graphics.enable = true;
 
