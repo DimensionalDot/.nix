@@ -69,7 +69,7 @@
     # List packages installed in system profile. To search, run:
     # $ nix search wget
     environment.systemPackages = with pkgs; [
-        greetd.greetd
+        greetd
 
         playerctl
         hyprpaper
@@ -154,7 +154,7 @@
         package = pkgs.mysql84;
     };
 
-    services.logind.powerKey = "suspend";
+    services.logind.settings.Login.HandlePowerKey = "suspend";
 
     # Open ports in the firewall.
     # networking.firewall.allowedTCPPorts = [ ... ];
@@ -188,7 +188,7 @@
         enable = true;
         settings = {
             default_session = {
-                command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --cmd hyprland";
+                command = "${pkgs.tuigreet}/bin/tuigreet --time --cmd hyprland";
                 user = "greeter";
             };
         };
