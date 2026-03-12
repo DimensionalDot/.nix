@@ -128,17 +128,15 @@
             sslServerCert = "${cert}/rootCA.pem";
             sslServerKey = "${cert}/rootCA-key.pem";
 
+            documentRoot = "/home/henry/work/phi/www/";
+
             servedDirs = [
-                {
-                    dir = "/home/henry/work/phi/www";
-                    urlPath = "/phi";
-                }
                 {
                     dir = "${pma}/share/php/phpmyadmin";
                     urlPath = "/phpmyadmin";
                 }
             ];
-            locations."/phi".index = "index.html index.php";
+            locations."/".index = "index.html index.php";
             locations."/phpmyadmin".index = "index.php";
         };
         enablePHP = true;
@@ -152,6 +150,7 @@
     services.mysql = {
         enable = true;
         package = pkgs.mysql84;
+        settings.mysqld.sql-mode = "\"\"";
     };
 
     services.logind.settings.Login.HandlePowerKey = "suspend";
