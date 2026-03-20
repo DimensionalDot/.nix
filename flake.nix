@@ -13,7 +13,15 @@
         nixosConfigurations.giedi = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
             specialArgs = { inherit inputs; };
-            modules = [ ./configuration.nix ];
+            modules = [
+                ./configuration.nix
+                ./hardware/giedi.nix
+                ({ inputs, ... }: {
+                    environment.systemPackages = [
+                        inputs.zen-browser.packages."x86_64-linux".beta
+                    ];
+                })
+            ];
         };
   };
 }

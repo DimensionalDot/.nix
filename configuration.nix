@@ -5,10 +5,7 @@
 { config, pkgs, inputs, ... }:
 
 {
-    imports =
-        [ # Include the results of the hardware scan.
-            ./hardware-configuration.nix
-        ];
+    imports = [];
 
     # swapDevices = [{
     #     device = "/var/lib/swapfile";
@@ -60,7 +57,7 @@
         description = "henry";
         extraGroups = [ "networkmanager" "wheel" ];
         packages = with pkgs; [];
-        shell = pkgs.zsh;
+        shell = pkgs.fish;
     };
 
     # Allow unfree packages
@@ -76,8 +73,6 @@
         wofi
         waybar
         wlsunset
-
-        inputs.zen-browser.packages."x86_64-linux".beta
 
         ghostty
         git
@@ -100,12 +95,11 @@
     # Some programs need SUID wrappers, can be configured further or are
     # started in user sessions.
     # programs.mtr.enable = true;
-    # programs.gnupg.agent = {
-    #   enable = true;
-    #   enableSSHSupport = true;
-    # };
+    programs.gnupg.agent = {
+      enable = true;
+    };
 
-    programs.zsh.enable = true;
+    programs.fish.enable = true;
     programs.tmux.enable = true;
     programs.neovim = {
         enable = true;
@@ -138,9 +132,19 @@
             ];
             locations."/".index = "index.html index.php";
             locations."/phpmyadmin".index = "index.php";
+
+            extraConfig = ''
+                    <Directory /home/henry/work/phi/www/>
+                        AllowOverride All
+                    </Directory>
+            '';
         };
         enablePHP = true;
-        phpPackage = pkgs.php83;
+        phpPackage = pkgs.php85;
+        phpOptions = ''
+            upload_max_filesize = 50M
+            post_max_size = 50M
+        '';
     };
     users.users.henry.homeMode = "710"; # mask gets reset on rebuild for some reason...
     systemd.tmpfiles.rules = [
