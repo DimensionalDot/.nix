@@ -15,12 +15,7 @@
             specialArgs = { inherit inputs; };
             modules = [
                 ./configuration.nix
-                ./hardware/giedi.nix
-                ({ inputs, ... }: {
-                    environment.systemPackages = [
-                        inputs.zen-browser.packages."x86_64-linux".beta
-                    ];
-                })
+                ./machines/giedi/config.nix
             ];
         };
   };
